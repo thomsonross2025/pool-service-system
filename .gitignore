@@ -1,0 +1,9 @@
+.env
+.env*.local
+.env.rtf
+node_modules/
+.next/
+.DS_Store
+*.log
+.vercel
+pnpm-lock.yaml

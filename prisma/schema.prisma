@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name    String
+  email   String?
+  phone   String   @unique
+  address String?
+  suburb  String?
+
+  myobId       String?  @unique
+  syncedToMyob Boolean  @default(false)
+  lastSyncedAt DateTime?
+
+  jobs Job[]
+
+  @@index([phone])
+  @@index([myobId])
+}
+
+model Job {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  jobNumber String @unique
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  productType      String
+  issueDescription String @db.Text
+  urgency          String @default("routine")
+
+  status String @default("new")
+
+  quotedAmount Decimal? @db.Decimal(10, 2)
+  finalAmount  Decimal? @db.Decimal(10, 2)
+
+  scheduledDate      DateTime?
+  estimatedDuration  Int?
+  assignedTechnician String?
+
+  completedDate   DateTime?
+  completionNotes String?   @db.Text
+
+  myobInvoiceId         String?
+  googleCalendarEventId String?
+
+  photos        JobPhoto[]
+  statusHistory JobStatusHistory[]
+  notifications Notification[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@index([jobNumber])
+}
+
+model JobPhoto {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  url         String
+  filename    String?
+  filesize    Int?
+  contentType String?
+
+  @@index([jobId])
+}
+
+model JobStatusHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  fromStatus String?
+  toStatus   String
+  changedBy  String?
+  notes      String? @db.Text
+
+  @@index([jobId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  jobId String?
+  job   Job?    @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  type      String
+  recipient String
+  subject   String?
+  body      String  @db.Text
+
+  status       String
+  errorMessage String? @db.Text
+
+  providerId String?
+
+  @@index([jobId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  key   String @unique
+  value String @db.Text
+
+  @@index([key])
+}
