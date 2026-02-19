@@ -4,6 +4,7 @@ const connectionOptions = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
   password: process.env.REDIS_PASSWORD || undefined,
+  tls: process.env.REDIS_HOST?.includes('upstash') ? {} : undefined,
   maxRetriesPerRequest: null,
 }
 
@@ -11,17 +12,9 @@ const defaultQueueOptions: QueueOptions = {
   connection: connectionOptions,
   defaultJobOptions: {
     attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000,
-    },
-    removeOnComplete: {
-      age: 24 * 3600,
-      count: 1000,
-    },
-    removeOnFail: {
-      age: 7 * 24 * 3600,
-    },
+    backoff: { type: 'exponential', delay: 2000 },
+    removeOnComplete: { age: 24 * 3600, count: 1000 },
+    removeOnFail: { age: 7 * 24 * 3600 },
   },
 }
 
