@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getTokensFromCode } from '@/lib/google-calendar'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -28,7 +30,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Store refresh token in SystemConfig
     await prisma.systemConfig.upsert({
       where: { key: 'google_refresh_token' },
       update: { value: tokens.refresh_token },
@@ -40,8 +41,6 @@ export async function GET(request: NextRequest) {
       update: { value: 'true' },
       create: { key: 'google_calendar_connected', value: 'true' },
     })
-
-    console.log('✅ Google Calendar connected successfully!')
 
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/settings?success=google_connected`
